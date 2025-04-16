@@ -1,27 +1,38 @@
-name: masscan unit tests
+name: Cross-Compile Masscan for Windows
 
 on:
   push:
-    branches: [master]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [master]
-
-permissions:
-  contents: read
+    branches:
+      - main
 
 jobs:
-  regress:
-    name: Run regression tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout masscan
+      - name: Checkout masscan repository
         uses: actions/checkout@v3
-      - name: Install libpcap-dev
-        if: ${{ vars.RUNNER_OS == 'Linux' }}
-        run: sudo apt-get install -y libpcap-dev
-      - name: Run regression tests
-        run: make test
+        with:
+          repository: robertdavidgraham/masscan
+          ref: master
+
+      - name: Set up cross-compilation environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64
+
+      - name: Cross-compile Masscan
+        run: |
+          make CC=x86_64-w64-mingw32-gcc
+
+      - name: Archive executable
+        run: |
+          mkdir dist
+          cp masscan.exe dist/
+          zip -r masscan.zip dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: masscan-windows
+          path: masscan.zip
