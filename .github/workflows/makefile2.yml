@@ -1,44 +1,32 @@
-name: Build masscan.exe
+name: Build Masscan for Windows
 
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
+  pull_request:
 
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4  # v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    - name: Set up MSYS2 and MinGW
-      uses: msys2/setup-msys2@v2  # Актуальная версия
-      with:
-        update: true
-        install: |
-          mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-make
-          git
-
-    - name: Download Npcap SDK
-      shell: powershell
+    - name: Install prerequisites
       run: |
-        $sdkUrl = "https://npcap.com/dist/npcap-sdk-1.13.zip"
-        Invoke-WebRequest -Uri $sdkUrl -OutFile "npcap-sdk.zip"
-        Expand-Archive -Path "npcap-sdk.zip" -DestinationPath "npcap-sdk"
-
+        choco install -y mingw
+        
     - name: Build masscan.exe
-      shell: msys2 {0}
-      env:
-        C_INCLUDE_PATH: ${{ github.workspace }}/npcap-sdk/Include
-        LIBRARY_PATH: ${{ github.workspace }}/npcap-sdk/Lib/x64
+      shell: cmd
       run: |
-        make
+        cd src
+        set PATH=C:\mingw\bin;%PATH%
+        gcc -o masscan.exe *.c -lws2_32 -static
 
-    # Убедитесь, что здесь используется v4
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4  # ТОЧНО v4
+    - name: Upload masscan.exe artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: masscan.exe
-        path: masscan.exe
+        name: masscan-windows
+        path: src/masscan.exe
