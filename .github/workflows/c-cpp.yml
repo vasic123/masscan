@@ -1,4 +1,4 @@
-name: Cross-Compile Masscan for Windows
+name: Cross-Compile Masscan for Windows test
 
 on:
   push:
