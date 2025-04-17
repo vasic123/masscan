@@ -14,16 +14,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install prerequisites
-      run: |
-        choco install -y mingw
-        
+    - name: Install MinGW
+      run: choco install -y mingw
+
     - name: Build masscan.exe
       shell: cmd
       run: |
         cd src
         set PATH=C:\mingw\bin;%PATH%
-        gcc -o masscan.exe *.c -lws2_32 -static
+        gcc -o masscan.exe *.c -lws2_32 -liphlpapi -static
 
     - name: Upload masscan.exe artifact
       uses: actions/upload-artifact@v4
