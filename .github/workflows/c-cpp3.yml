@@ -1,0 +1,42 @@
+name: Unit Tests and Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make mingw-w64  # Для сборки под Windows [[8]]
+
+    - name: Compile for Linux
+      run: |
+        make clean
+        make -j$(nproc)  # Сборка для Linux [[10]]
+
+    - name: Run unit tests
+      run: |
+        make test  # Запуск тестов, если они предусмотрены проектом [[1]][[5]]
+
+    - name: Compile for Windows (EXE)
+      run: |
+        make clean
+        CC=x86_64-w64-mingw32-gcc make -j$(nproc)  # Кросс-компиляция для Windows [[10]]
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: masscan-binaries
+        path: |
+          bin/masscan  # Линукс-бинарник
+          masscan.exe  # Windows-бинарник
