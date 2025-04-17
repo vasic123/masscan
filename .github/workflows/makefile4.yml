@@ -1,9 +1,10 @@
 name: Build masscan.exe
 
 on:
-  workflow_dispatch:  # Запуск вручную через GitHub UI
+  workflow_dispatch:
   push:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: windows-latest
@@ -17,7 +18,7 @@ jobs:
         update: true
         install: |
           mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-make
+          mingw-w64-x86_64-make  # Обязательно
           git
 
     - name: Download Npcap SDK
@@ -30,11 +31,13 @@ jobs:
     - name: Build masscan.exe
       shell: msys2 {0}
       env:
-        PATH: /mingw64/bin:$PATH  # Ключевое исправление
         C_INCLUDE_PATH: ${{ github.workspace }}/npcap-sdk/Include
         LIBRARY_PATH: ${{ github.workspace }}/npcap-sdk/Lib/x64
       run: |
-        make
+        # Проверка установки make
+        which make     # Должен показать /usr/bin/make
+        make --version # Проверка версии
+        make          # Запуск сборки
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
